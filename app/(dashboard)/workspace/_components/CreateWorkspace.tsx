@@ -9,14 +9,14 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { workspaceSchema } from '@/app/schemas/workspace';
 import { zodResolver } from "@hookform/resolvers/zod";
-// ... existing code ...
+import { z } from "zod";
 
 export function CreateWorkspace() {
     //     getter, setter   initially closed
     const [open, setOpen] = useState(false)
 
     // 1. Define your form
-    const form = useForm({
+    const form = useForm<z.infer<typeof workspaceSchema>>({
         resolver: zodResolver(workspaceSchema),
         defaultValues: {
             name: "",
@@ -24,8 +24,8 @@ export function CreateWorkspace() {
     });
 
     // 2. Define a submit handler.
-    function onSubmit() {
-        console.log("Data")
+    function onSubmit(data: z.infer<typeof workspaceSchema>) {
+        console.log("Data", data)
     }
 
     return (
@@ -61,7 +61,7 @@ export function CreateWorkspace() {
                             <FormItem>
                                 <FormLabel>Name</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="My Workspace" />
+                                    <Input placeholder="My Workspace" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

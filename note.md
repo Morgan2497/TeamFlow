@@ -194,3 +194,22 @@ this line initializes the brain of your form. Even though it is only one line, i
     </FormItem>
   )} 
 />
+
+3. resolver
+    const form = useForm({
+        resolver: zodResolver(workspaceSchema),
+    });
+
+Without the resolver, this would be letting everything in so no validation check point exists. You could submit an empty name, a number etc.
+
+With the resolver, now you have handled the validation check point.
+
+as you can see, the name has to be 2 < n < 50, so it will throw a message something like "String must contain at least 2 characters".
+import { z } from "zod";
+
+export const workspaceSchema = z.object({
+    name: z.string().min(2).max(50),
+});
+
+==============================================================================================================================================================================================
+
