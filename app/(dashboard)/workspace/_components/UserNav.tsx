@@ -4,14 +4,28 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CreditCard, LogOut, User } from "lucide-react";
 import { LogoutLink, PortalLink } from "@kinde-oss/kinde-auth-nextjs/components";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { orpc } from "@/lib/orpc";
+import { getAvatar } from "@/lib/get-avatar";
 
-const user = {
-  picture: "/prof.jpg",
-  given_name: "Morgan Kim",
-  user_email: "morgan.kim@example.com",
+function initials(user: { given_name: string | null; email: string | null }) {
+  if (user.given_name?.trim()) {
+    return user.given_name.slice(0, 2).toUpperCase();
+  }
+  if (user.email) {
+    return user.email.slice(0, 2).toUpperCase();
+  }
+  return "?";
 }
 
 export function UserNav() {
+  const {
+    data: { user },
+  } = useSuspenseQuery(orpc.workspace.list.queryOptions());
+
+  console.log(user.picture)
+  const avatarSrc = getAvatar(user.picture, user.email ?? user.id ?? "");
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -20,11 +34,11 @@ export function UserNav() {
                 border-border/50 hover:bg-accent
                 hover:text-accent-foreground">
           <Avatar className="relative-size-8 rounded-lg">
-            <AvatarImage src={user.picture}
+            <AvatarImage src={avatarSrc}
               alt="User Image"
               className="object-cover" />
             <AvatarFallback>
-              {user.given_name.slice(0, 2).toUpperCase()}
+              {initials(user)}
             </AvatarFallback>
           </Avatar>
         </Button>
@@ -38,16 +52,16 @@ export function UserNav() {
         <DropdownMenuLabel className="font-normal flex items-center gap-2 px-1
                 py-1.5 text-left text-sm">
           <Avatar>
-            <AvatarImage src={user.picture}
+            <AvatarImage src={avatarSrc}
               alt="User Image"
               className="object-cover" />
             <AvatarFallback>
-              {user.given_name.slice(0, 2).toUpperCase()}
+              {initials(user)}
             </AvatarFallback>
           </Avatar>
           <div className="grid flex-1 text-left text-sm leading-tight">
-            <p className="truncate font-medium">{user.given_name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user.user_email}</p>
+            <p className="truncate font-medium">{user.given_name ?? user.email ?? "User"}</p>
+            <p className="truncate text-xs text-muted-foreground">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

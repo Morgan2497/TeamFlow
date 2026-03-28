@@ -212,4 +212,113 @@ export const workspaceSchema = z.object({
 });
 
 ==============================================================================================================================================================================================
+Mar 17th
+1. oRPC
+Everything starts with base.ts. It is a template.
+By defining errors in base.ts, you ensure that every single route in our app speaks the same "language". If a route fails, the frontend recevies a standardized error that it knows how to handle. It also sets the "Request" as the starting context, so every following step knows which URL or headers are being accessed. 
+
+- What is $context?
+Think of it as a backpack every request carries as it moves through your server.
+
+So instead of passing variables one by one through 10 different functions, you put them in the "Context backpack". Any middleware or handler down the line can reach into that backpack and pull out the 'request' (to check cookies, URLs, or headers.)
+
+- os.$context<{ request: Request }>().errors   Generic
+
+What they do?
+A generic is a way of saying "I don't know exactly what data you are going to use yet, so I am leaving a placeholder. You tell me what the 'Type' is when you use me.
+
+Standard Code: const name = "Morgan" (Fixed to a string).
+
+Generic Code: os.$context<T>() (Can be anything).
+
+so by putting { request: Request } inside the brackets, you are locking in the placeholder. "For this specific 'base' object, the context placeholder T is now officially a Request."
+
+2. z.void()
+think of it as a "No luggage allowed" policy at an airport gate.
+ex: .input(z.void()) tells the server: "This specific function does not need the user to send any data in the request body."
+
+If you send nothing: "The guard (Zod)" lets you through.
+If you try to send data (like {"name": "Morgan"}) the guard stops you and says "I wasn't expecting any data here."
+
+Why use it? Most "List" actions (like listing workspaces) don't need the user to provide information; the server already knows who you are from your login session. 
+
+3. .output(): is a quality control checklist. It ensures the server does not accidentally send back garbage or sensitive secrets.
+
+.output(z.object({
+  // 1. A list of badges (The Array)
+  badges: z.array(
+    z.object({ 
+      title: z.string(), 
+      color: z.string() 
+    })
+  ),
+  // 2. The User Info (The Custom Type)
+  user: z.custom<KindeUser>(),
+  // 3. A single string for status
+  status: z.string()
+}))
+
+-> z.object({...}): this is the "Container". Everything inside must match.
+
+-> z.array(z.object({...})): this says: "I will give you a list. Every single item in that list must have a title and a color"
+
+Now the handshake between the server and our logic will be like if color: 123 (a number) instead of a string, the app will throw an error as the contract is not abided by. 
+
+-> z.custom(): custom is a built-in function provides by the zod library. 
+
+4. Why use () after the Generic?
+This is a mix of Typescript (the instructions) and JavaScript (the action).
+
+z.custom<KindeUser> is like looking at a Blueprint for a house.
+
+z.custom<KindeUser>() is actually Building the house so you can stand in it.
+
+so () is an action. In JS, writing the name of a function (z.custom) just points to the tool. Adding the parentheses () actually turns the tool on and creates the validator.
+
+5. The Generic: <KindeUser <...>>
+- The angled brackets <>: these are generics. Think of them as a label on a box.
+- In the case, KindeUser: This is a complex type provided by  Kinde, but KindeUser is "Generic" itself - it's a box that can hold different types of extra data (metadata). It needs you to tell it what kind of extra data to expect inside.
+
+* The inner generic: Record<string, unknown>
+user: z.custom<KindeUser<Record<string, unknown>>>(),
+
+This is where it gets interesting. Inside the KindeUser box, we are putting another box called a "Record".
+
+Record<string, unknown>: This is a standard TypeScript "Utility Type." It is a fancy way of describing a Dictionary or a Plain Object.
+
+-> string: This says, "The Keys (the labels) in this dictionary must be strings." (e.g., "email", "id", "username").
+
+-> unknown: This says, "The Values (the data) can be anything, and I don't know what they are yet."
+
+Record<K, V>: A dictionary with Keys (K) and Values (V).
+
+
+6. Client State vs Server State
+- Client state refers to data managed within the user's browser. Therefore, it exists within the frontend application, managing UI-specific data like dark mode, form inputs, or active navigation tabs. It is local, often ephemeral, and managed via "useState", useReducer.
+
+- Server state refers to data managed on the backend server and fetched via APIs. It is sourced from a db or API that requires syncing with the client. It is persistent, shared, and asynchronous, requiring specialized management for caching, loading, and error states.
+
+7. Hydration
+It is a process of taking a static web page (rendered on the server) and making it "alive" and interactive in the browser.
+
+The server sends you a dry, flat sponge (the static HTML). It looks like a sponge, but you can't use it to clean anything yet.
+
+The browser adds "water" (the JS). Suddenly, the sponge expands and becomes a functional, squishy tool you can actually use.
+
+How the Process Works
+
+When you use a framework like Next.js with TanStack Query, hydration happens in three main steps:
+
+    Server-Side Rendering (SSR): The server runs your code, fetches the data (like your list of workspaces), and generates the HTML. It sends this finished HTML to your browser.
+
+        Benefit: The user sees the content almost instantly.
+
+    The Handover: Along with the HTML, the server sends a "script" (JSON) that contains all the data it just fetched.
+
+    Hydration: The browser downloads the JavaScript. It looks at the HTML already on the screen and "attaches" the event listeners (like clicks and hovers). It also "pours" that JSON data into the TanStack Query Cache.
+
+
+WHY DO WE USE HYDRATION?
+Without hydration, the server sends the page, the browser shows the page, the JS loads, so the page goes blank or shows a spinner for a second. The data arrives and the page jumps around as it renders. Because the data was hydrated into the cache on the server, the browser already has the data the moment the JS starts running. There is no second "fetch" and no jumping UI.
+
 
