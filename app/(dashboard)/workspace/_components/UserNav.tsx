@@ -23,7 +23,6 @@ export function UserNav() {
     data: { user },
   } = useSuspenseQuery(orpc.workspace.list.queryOptions());
 
-  console.log(user.picture)
   const avatarSrc = getAvatar(user.picture, user.email ?? user.id ?? "");
 
   return (
