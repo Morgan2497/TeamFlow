@@ -321,4 +321,81 @@ When you use a framework like Next.js with TanStack Query, hydration happens in 
 WHY DO WE USE HYDRATION?
 Without hydration, the server sends the page, the browser shows the page, the JS loads, so the page goes blank or shows a spinner for a second. The data arrives and the page jumps around as it renders. Because the data was hydrated into the cache on the server, the browser already has the data the moment the JS starts running. There is no second "fetch" and no jumping UI.
 
+==============================================================================================================================================================================================
+Mar 29
+
+1. CDN -> Content Delivery Network is a geographically distributed network of servers that caches web content (images, videos, HTML, scripts) closer to end users, significantly reducing website load times and latency. 
+
+2.  process.env.ARCJET_KEY!
+-> exclamation mark.
+
+In TypeScript, ! after an expression is the non-null assertion operator.
+For process.env.ARCJET_KEY! it means: “treat this as definitely defined; don’t treat it as undefined (or null).”
+
+3. Arrow function: when and how they behave.
+
+* What this is:
+const buildStandardAj = () => 
+    arcjet.withRule(
+        shield({
+            mode: "LIVE",
+            
+        })
+    ).withRule(
+        detectBot({
+            mode: "LIVE",
+            allow: ['CATEGORY:SEARCH_ENGINE',
+                'CATEGORY:PREVIEW',
+                'CATEGORY:MONITOR',  
+            ],
+        })
+    )
+buildStandardAj is a function. The "() =>" part means "this function takes no arguments." Everythin after the => is what the function returns. 
+
+const buildStandardAj = () => 
+    arcjet.withRule(...)
+
+you've noticed that we don't have a curly brace. That is, everything after the => is what the function returns.
+
+if you have one
+const buildStandardAj = () => {
+  arcjet.withRule(...)
+}
+
+this means that you'd have to write return yourself, or the function would return undefined.
+
+* When do we use it.
+- short helpers (like "build me this configured thing").
+- callbacks (array.map(x=> x*2))
+- when you want to keep this from the outer scope
+
+4. KindeUser<Record<string, unknown>> breakdown.
+*  Think of KindeUser as a template, not one fixed shape. The library authors said: "A kinde user always has email, picturem etc., plus maybe extra fields that depend on your app."
+
+so they would define something like
+
+interface KindeUser<T = ...> {
+  id: string;
+  email: string | null;
+  // ...
+  properties?: ... & T;  // simplified idea
+}
+
+* <..> is generics: "Fill in the blanks for this type."
+so KIndeUser <Record<string,unknwon>> means:
+
+- use the KindeUser type
+- For the extra/custom part, use Record<string, unknown>
+
+* You now may wonder what is "Record"
+- Record is a TypeScript built-in helper. Record<string, unknown> means: An object whose keys are strings and whose values can be anything (we are not being more specific).
+
+- so: "We have a Kinde user, and we are not pinning down custom property types - could be any extra key / value bag."
+
+* Now, why <..> inside <>?
+- You are not nesting two separate "unknown" things.
+- You are essentially saying 
+-> Outer: KindeUser - which type?
+-> inner: Record<string, unknown> - that one type argument. 
+It’s like calling a function with an argument that is itself another call: foo(bar()) — the inner thing is just the value you pass to the outer thing.
 

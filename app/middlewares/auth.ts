@@ -17,7 +17,7 @@ export const requiredAuthMiddleware = base
     return next({
       context: { user: session.user },
     });
-  });
+  }); 
 
 const getSession = async () => {
   const { getUser } = getKindeServerSession();
