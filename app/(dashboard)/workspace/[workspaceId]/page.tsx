@@ -1,16 +1,11 @@
-import React from 'react'
+import React from 'react';
 
-interface WorkspacePageProps {
-  params: {
-    workspaceId: string
-  }
+const page = () => {
+    return (
+        <div>
+            page
+        </div>
+    )
 }
 
-export default function WorkspacePage({ params }: WorkspacePageProps) {
-  return (
-    <div>
-      <h1>Workspace: {params.workspaceId}</h1>
-      <p>This is the dynamic workspace page.</p>
-    </div>
-  )
-}
+export default page;
