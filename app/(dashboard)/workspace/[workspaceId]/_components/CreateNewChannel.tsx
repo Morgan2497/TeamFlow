@@ -70,9 +70,9 @@ export function CreateNewChannel() {
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem>
+                <FormItem >
                   <FormLabel>Name</FormLabel>
-                  <FormControl>
+                  <FormControl className="mt-2">
                     <Input placeholder="My channel" {...field} />
                   </FormControl>
                   {transformedName &&
@@ -89,7 +89,7 @@ export function CreateNewChannel() {
               )}
             />
 
-            <Button type="submit">Create channel</Button>
+            <Button type="submit">Create new channel</Button>
           </form>
         </Form>
       </DialogContent>

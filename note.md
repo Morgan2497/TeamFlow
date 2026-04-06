@@ -373,7 +373,7 @@ const buildStandardAj = () =>
             ],
         })
     )
-buildStandardAj is a function. The "() =>" part means "this function takes no arguments." Everythin after the => is what the function returns. 
+buildStandardAj is a function. The "() =>" part means "this function takes no arguments." Everythin after the "=>" is what the function returns. 
 
 const buildStandardAj = () => 
     arcjet.withRule(...)
@@ -461,7 +461,9 @@ Think of it as a Smart Clipboard for your forms. Instead of you manually watchin
 
 * Term,Analogy,What it actually does
 - register,"The ""Tracker""","Connects your HTML input to the library so it can ""watch"" the value."
+
 - handleSubmit,"The ""Security Guard""",Checks all the rules (validation) before allowing your code to run.
+
 - formState,"The ""Dashboard""","Tells you if there are errors, if the user has touched the field, or if the form is currently submitting."
 
 8. z.never()
@@ -529,7 +531,32 @@ When you put a space inside curly braces {" "}, you are telling React: "I am a s
 
 It guarantees that no matter how your code is formatted or indented, there will always be a gap between the text and the grey box.
 
------------6:18---------------
-go to mar 29th and review what you have done.
-==============================================================================================================================================================================================
+
+==============================================================================================================================================================
 Mar 30th
+
+1. In ChannelList.tsx
+
+export function ChannelList() {
+    return (
+        <div className='space-y-0.5 py-1'>
+            {channelList.map((channel) => (
+                <Link key={channel.id} href="#">
+                    <Hash className='size-4'/>
+
+                    <span>{channel.name}</span>
+                </Link>
+            ))}
+        </div>
+    )
+}
+
+* What is Link?
+- In Next.js, we use the <Link> component (usually imported from next/link).
+- It is a react component that handles navigation.
+- Unlike a regular link that refreshes the whole browser (the "white flash" you see on old sites), <Link> tells Next.js to only swap out the middle of the page. This keeps your Sidebar and Header exactly where they are, making the app feel like a fast desktop application.
+
+* What is href (The coordinates)
+- The href (Hypertext Reference) is a prop (attribute) that tells the Link exactly where to go.
+- It is the address of the link.
+- href={/workspace/workspaceId/channel/{channel.id}}
