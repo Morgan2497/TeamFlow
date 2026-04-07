@@ -13,7 +13,6 @@ export const listWorkspaces = base
   .use(requiredAuthMiddleware)
   .use(requiredWorkspaceMiddleware)
   .use(standardSecuritymiddleware)
-  .use(heavyWriteMiddleware)
   .route({
     method: 'GET',
     path: '/workspace',

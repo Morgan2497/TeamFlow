@@ -1,6 +1,6 @@
 import React from 'react';
 
-const page = () => {
+const WorkspaceidPage = () => {
     return (
         <div>
             page
@@ -8,4 +8,4 @@ const page = () => {
     )
 }
 
-export default page;
+export default WorkspaceidPage;

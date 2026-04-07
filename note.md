@@ -560,3 +560,30 @@ export function ChannelList() {
 - The href (Hypertext Reference) is a prop (attribute) that tells the Link exactly where to go.
 - It is the address of the link.
 - href={/workspace/workspaceId/channel/{channel.id}}
+
+==============================================================================================================================================================
+April 05
+1. What is children ? 
+In React, children is a normal prop with a special role: It's whatever you put between a component's opening and closing tags. 
+
+<MyLayout>
+  <p>Hello</p>   {/* this becomes `children` inside MyLayout */}
+</MyLayout>
+
+Inside MyLayout, React passes that inner stuff as props.children, so you can render it wherever you want:
+
+function MyLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <div>
+      <aside>Sidebar</aside>
+      <main>{children}</main>   {/* "Hello" shows here */}
+    </div>
+  );
+}
+
+So children = “the nested content this component is wrapping.”
+the code above as an example, you declared that this component accepts "children" (and typed it as React.ReactNode)
+
+children- The nested React nodes passed inside your component’s tags.
+In Next.js- layout	Usually the child route’s content (page.tsx, etc.).
+

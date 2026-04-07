@@ -1,4 +1,5 @@
 "use client";
+
 import {
   channelNameSchema,
   transformChannelName,
@@ -21,14 +22,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { orpc } from "@/lib/orpc";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
 export function CreateNewChannel() {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+
   const form = useForm<z.input<typeof channelNameSchema>>({
     resolver: zodResolver(channelNameSchema),
     defaultValues: {
@@ -36,14 +42,28 @@ export function CreateNewChannel() {
     },
   });
 
+  const createChannelMutation = useMutation(
+    orpc.channel.create.mutationOptions({
+      onSuccess: (channel) => {
+        toast.success(`Channel ${channel.name} created successfully`);
+        queryClient.invalidateQueries({
+          queryKey: orpc.workspace.list.queryKey(),
+        });
+        form.reset();
+        setOpen(false);
+      },
+      onError: () => {
+        toast.error("Failed to create channel, try again!");
+      },
+    })
+  );
+
+  function onSubmit(values: z.output<typeof channelNameSchema>) {
+    createChannelMutation.mutate(values);
+  }
+
   const watchedName = form.watch("name");
   const transformedName = watchedName ? transformChannelName(watchedName) : "";
-
-  function onSubmit(_values: z.output<typeof channelNameSchema>) {
-    // Wire create-channel API here; _values.name is already transformed by Zod
-    form.reset();
-    setOpen(false);
-  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -70,7 +90,7 @@ export function CreateNewChannel() {
               control={form.control}
               name="name"
               render={({ field }) => (
-                <FormItem >
+                <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl className="mt-2">
                     <Input placeholder="My channel" {...field} />
@@ -89,7 +109,14 @@ export function CreateNewChannel() {
               )}
             />
 
-            <Button type="submit">Create new channel</Button>
+            <Button
+              disabled={createChannelMutation.isPending}
+              type="submit"
+            >
+              {createChannelMutation.isPending
+                ? "Creating..."
+                : "Create new channel"}
+            </Button>
           </form>
         </Form>
       </DialogContent>
