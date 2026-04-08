@@ -50,6 +50,9 @@ export default function ChannelListLayout({
             </CollapsibleContent>
           </Collapsible>
         </div>
+        {children}
+    </>
+)
 
         {/* Members List */}
         <div className="border-5 border-border px-4 py-2">
