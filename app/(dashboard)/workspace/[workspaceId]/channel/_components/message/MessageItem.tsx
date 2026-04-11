@@ -1,7 +1,8 @@
+import { SafeContent } from "@/components/rich-text-editor/SafeContent";
 import Image from "next/image";
 
 interface MessageItemProps {
-  id: number;
+  id: string;
   message: string;
   date: Date;
   avatar: string;
@@ -45,7 +46,8 @@ export function MessageItem({
           ).format(date)}
           </p>
         </div>
-        <p className="text-sm break-work max-w-none">{message}</p>
+        
+          <SafeContent className="text-sm break-words prose dark:prose-invert max-w-none" content={JSON.parse(message)} />
       </div>
     </div>
   );
