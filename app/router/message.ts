@@ -1,0 +1,109 @@
+import z from "zod";
+import { standardSecuritymiddleware } from "../middlewares/arcjet/standard";
+import { requiredAuthMiddleware } from "../middlewares/auth";
+import { base } from "../middlewares/base";
+import { requiredWorkspaceMiddleware } from "../middlewares/workspace";
+import { WriteSecurityMiddleware } from "../middlewares/arcjet/write";
+import { MESSAGE_LIST_PAGE_SIZE } from "@/lib/constants/messages";
+import prisma from "@/lib/db";
+import { createMessageSchema } from "../schemas/message";
+import { getAvatar } from "@/lib/get-avatar";
+import { Message } from "@/lib/generated/prisma";
+
+export const createMessage = base
+  .use(requiredAuthMiddleware)
+  .use(requiredWorkspaceMiddleware)
+  .use(standardSecuritymiddleware)
+  .use(WriteSecurityMiddleware)
+  .route({
+    method: "POST",
+    path: "/message",
+    summary: "Create a new message",
+    tags: ["messages"],
+  })
+  .input(createMessageSchema)
+  .output(z.custom<Message>())
+  .handler(async ({ input, context, errors }) => {
+    const channel = await prisma.channel.findFirst({
+      where: {
+        id: input.channelId,
+        workspaceId: context.workspace.orgCode,
+      },
+    });
+
+    if (!channel) {
+      throw errors.FORBIDDEN();
+    }
+
+    const created = await prisma.message.create({
+      data: {
+        content: input.content,
+        imageUrl: input.imageUrl,
+        channelId: channel.id,
+        authorId: context.user.id,
+        authorEmail: context.user.email ?? "",
+        authorName: context.user.given_name ?? "User",
+        authorAvatar: getAvatar(context.user.picture, context.user.email!),
+      },
+    });
+    return created;
+  });
+
+const listMessagesPageSchema = z.object({
+  channelId: z.string(),
+  limit: z.number().min(1).max(100).optional(),
+  cursor: z.string().optional(),
+});
+
+const listMessagesPageOutput = z.object({
+  items: z.array(z.custom<Message>()),
+  nextCursor: z.string().optional(),
+});
+
+export const listMessages = base
+  .use(requiredAuthMiddleware)
+  .use(requiredWorkspaceMiddleware)
+  .use(standardSecuritymiddleware)
+  .route({
+    method: "GET",
+    path: "/messages",
+    summary: "List messages (cursor pagination)",
+    tags: ["messages"],
+  })
+  .input(listMessagesPageSchema)
+  .output(listMessagesPageOutput)
+  .handler(async ({ input, context, errors }) => {
+    const channel = await prisma.channel.findFirst({
+      where: {
+        id: input.channelId,
+        workspaceId: context.workspace.orgCode,
+      },
+    });
+    if (!channel) {
+      throw errors.FORBIDDEN();
+    }
+
+    const limit = input.limit ?? MESSAGE_LIST_PAGE_SIZE;
+
+    const messages = await prisma.message.findMany({
+      where: {
+        channelId: channel.id,
+      },
+      ...(input.cursor
+        ? {
+            cursor: { id: input.cursor },
+            skip: 1,
+          }
+        : {}),
+      take: limit,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    });
+
+    const nextCursor =
+      messages.length === limit ? messages[messages.length - 1]!.id : undefined;
+
+    return {
+      items: messages,
+      nextCursor,
+    };
+  });
