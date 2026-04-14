@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import {createMessageSchema} from "@/app/schemas/message";
 import { MessageComposer } from "./MessageComposer";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { MESSAGE_LIST_PAGE_SIZE } from "@/lib/constants/messages";
 import { orpc } from "@/lib/orpc";
 import { toast } from "sonner";
 import { CreateMessageSchemaType } from "@/app/schemas/message";
@@ -26,7 +27,10 @@ export function MessageInputForm({channelId}: iAppProps) {
         orpc.message.create.mutationOptions({
             onSuccess: () => {
                 void queryClient.invalidateQueries({
-                    queryKey: orpc.message.list.queryKey({ input: { channelId } }),
+                    queryKey: orpc.message.list.key({
+                        type: "infinite",
+                        input: { channelId, limit: MESSAGE_LIST_PAGE_SIZE },
+                    }),
                 });
                 return toast.success('Message created successfully!')
             },
